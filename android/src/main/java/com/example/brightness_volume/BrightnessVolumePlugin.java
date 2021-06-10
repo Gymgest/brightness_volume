@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.provider.Settings;
 import android.view.WindowManager;
 import android.content.Context;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import android.os.Environment;
@@ -104,12 +105,11 @@ public class BrightnessVolumePlugin implements FlutterPlugin, MethodCallHandler 
     }
   }
 
-
   private float getBrightness(){
     float result = this.activity.getWindow().getAttributes().screenBrightness;
     if (result < 0) { // the application is using the system brightness
       try {
-        result = Settings.System.getInt(this.ctx.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS) / (float)255;
+        result = Settings.System.getInt(this.ctx.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS) / (float)getMaxBrightness();
       } catch (Settings.SettingNotFoundException e) {
         result = 1.0f;
         e.printStackTrace();
@@ -118,7 +118,17 @@ public class BrightnessVolumePlugin implements FlutterPlugin, MethodCallHandler 
     return result;
   }
 
-
+  private int getMaxBrightness() {
+    int result = 255;
+    try { 
+        Resources system = Resources.getSystem();
+        int resId = system.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android");
+        if (resId != 0) {
+            result = system.getInteger(resId);
+        }
+    } catch (Exception ignore) {}
+    return result;
+  }
 
   private float getVolume() {
     if (audioManager == null) {
